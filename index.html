@@ -87,6 +87,79 @@ void main() {
 }" width="300" height="300"></canvas>
         </div>
         <div class="shader-item">
+            <canvas id="shader2" data-fragment="
+    #ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform vec2 u_resolution; // Screen resolution
+uniform float u_time;      // Time variable
+
+// Function to draw a circle
+float circle(in vec2 _st, in float _radius) {
+    vec2 dist = _st - vec2(0.0); // Center the circle at (0, 0)
+    return 1.0 - smoothstep(_radius - (_radius * 0.01),
+                             _radius + (_radius * 0.01),
+                             dot(dist, dist) * 4.0);
+}
+
+// Function to create the blinking effect
+float blink(float yCoord, float blinkSpeed) {
+    return smoothstep(-1.0, -0.5, yCoord + sin(u_time * blinkSpeed) * 0.5) * 
+           smoothstep(1.0, 0.5, yCoord - sin(u_time * blinkSpeed) * 0.5);
+}
+
+void main() {
+    // Normalize coordinates to range [-1, 1]
+    vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
+
+    // Adjust for aspect ratio
+    uv.x *= u_resolution.x / u_resolution.y;
+
+    // Define circle radii
+    float radius1 = 0.06 + 0.03 * sin(u_time * 1.5); // Oscillating radius for the first circle
+    float radius2 = 0.2; // Radius for the second circle
+    float radius3 = 2.0; // Radius for the third circle
+
+    // Calculate visibility for each circle
+    float c1 = circle(uv, radius1);
+    float c2 = circle(uv, radius2);
+    float c3 = circle(uv, radius3);
+
+    // Blink effect applied to the first circle
+    // Use a sin wave for the blink factor but adjust its speed and range
+	float blinkSpeed = 1.05;  // Speed of the blinking
+	float blinkFactor = step(0.76, 1.0 - abs(uv.y) + sin(u_time * blinkSpeed) * 0.5); // Adjust sin scaling to control blink timing
+ // Adjust the speed of the blink with 1.5
+
+    // Assign colors to each circle
+    vec3 color1 = vec3(0.000,0.000,0.000);  // Color for the first circle (orange)
+    vec3 color2 = vec3(0.815,0.069,0.014);  // Color for the second circle (blue)
+    vec3 color3 = vec3(1.,1.,1.);  // Color for the third circle (dark red)
+
+    // Initialize the final color as transparent
+    vec4 finalColor = vec4(0.0); 
+
+    // Draw the first circle with blinking effect
+    if (c1 > 0.0) {
+        finalColor = vec4(color1, blinkFactor); // Set to the color of the first circle with opacity blink
+    }
+
+    // Draw the second circle (blue)
+    else if (c2 > 0.0) {
+        finalColor = vec4(color2, blinkFactor); // Set to the color of the second circle
+    }
+
+    // Draw the third circle (dark red)
+    else if (c3 > 0.0) {
+        finalColor = vec4(color3, blinkFactor); // Set to the color of the third circle
+    }
+
+    // Final output
+    gl_FragColor = finalColor;
+}" width="300" height="300"></canvas>
+        </div>
+                <div class="shader-item">
             <canvas id="shader2" data-fragment="#ifdef GL_ES
 precision mediump float;
 #endif
@@ -115,7 +188,6 @@ void main() {
     mainImage(gl_FragColor, gl_FragCoord.xy);  // Call mainImage from main
 }" width="300" height="300"></canvas>
         </div>
-        <!-- Add more shaders as needed -->
     </div>
 
     <script>
